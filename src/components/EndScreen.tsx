@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Scoreboard from './Scoreboard';
 import { submitScore } from '../lib/scores';
 
@@ -6,6 +6,41 @@ interface EndScreenProps {
   playerName: string;
   score: number;
   onPlayAgain: () => void;
+}
+
+const CONFETTI_COLORS = ['#C9A24B', '#6B8F4E', '#EBECD0', '#C1502E', '#F5F1E6'];
+
+function Confetti({ count = 28 }: { count?: number }) {
+  const pieces = useMemo(
+    () =>
+      Array.from({ length: count }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        delay: Math.random() * 0.6,
+        duration: 2.5 + Math.random() * 1.5,
+        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        rotate: Math.random() * 360,
+      })),
+    [count]
+  );
+
+  return (
+    <div className="pointer-events-none fixed inset-0 overflow-hidden">
+      {pieces.map((p) => (
+        <span
+          key={p.id}
+          className="confetti-piece"
+          style={{
+            left: `${p.left}%`,
+            backgroundColor: p.color,
+            animationDelay: `${p.delay}s`,
+            animationDuration: `${p.duration}s`,
+            transform: `rotate(${p.rotate}deg)`,
+          }}
+        />
+      ))}
+    </div>
+  );
 }
 
 export default function EndScreen({ playerName, score, onPlayAgain }: EndScreenProps) {
@@ -22,6 +57,7 @@ export default function EndScreen({ playerName, score, onPlayAgain }: EndScreenP
 
   return (
     <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
+      {score > 0 && <Confetti />}
       <div className="space-y-2">
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">Time's up</p>
         <h1 className="font-display text-3xl font-semibold">

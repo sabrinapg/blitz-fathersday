@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Scoreboard from './Scoreboard';
+import { playStart, unlockAudio } from '../lib/sounds';
 
 interface StartScreenProps {
   onStart: (playerName: string) => void;
@@ -37,14 +38,18 @@ export default function StartScreen({ onStart }: StartScreenProps) {
           placeholder="Enter a name"
         />
         <button
-          onClick={() => onStart(name.trim() || 'Dad')}
+          onClick={() => {
+            unlockAudio();
+            playStart();
+            onStart(name.trim() || 'Dad');
+          }}
           className="w-full rounded-lg bg-gold px-4 py-3 font-display text-lg font-semibold text-ink transition hover:bg-gold/90 active:scale-[0.99]"
         >
           Start the Clock
         </button>
         <p className="text-xs text-paper/50">
-          Each puzzle is a fresh mate-in-1 from Lichess. Drag the piece that delivers
-          checkmate.
+          Each puzzle is a fresh mate-in-1 from Lichess. Tap or drag the piece that
+          delivers checkmate.
         </p>
       </div>
 

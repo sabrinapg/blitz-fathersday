@@ -3,6 +3,7 @@ import { Chess } from 'chess.js';
 import Board from './Board';
 import Timer from './Timer';
 import { fetchMateInOnePuzzle } from '../lib/puzzles';
+import { playCorrect, playGameOver, playMove, playTick, playWrong } from '../lib/sounds';
 import type { Puzzle } from '../types';
 
 const GAME_LENGTH_SECONDS = 5 * 60;
@@ -47,25 +48,34 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
   // Countdown
   useEffect(() => {
     if (secondsLeft <= 0) {
+      playGameOver();
       gameOverRef.current(scoreRef.current);
       return;
+    }
+    if (secondsLeft <= 10) {
+      playTick();
     }
     const id = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
     return () => clearTimeout(id);
   }, [secondsLeft]);
 
-  const handleDrop = useCallback(
-    (source: string, target: string, piece: string) => {
+  const attemptMove = useCallback(
+    (source: string, target: string, promotion?: string) => {
       if (!puzzle) return false;
 
       const board = new Chess(puzzle.fen);
-      const promotion = piece.toLowerCase().endsWith('p')
-        ? undefined
-        : piece[1]?.toLowerCase();
+
+      const piece = board.get(source as Parameters<typeof board.get>[0]);
+      const isPromotion =
+        piece?.type === 'p' && (target.endsWith('8') || target.endsWith('1'));
 
       let move;
       try {
-        move = board.move({ from: source, to: target, promotion: promotion ?? 'q' });
+        move = board.move(
+          isPromotion
+            ? { from: source, to: target, promotion: promotion ?? 'q' }
+            : { from: source, to: target }
+        );
       } catch {
         return false;
       }
@@ -74,6 +84,7 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
       const uci = `${move.from}${move.to}${move.promotion ?? ''}`.toLowerCase();
 
       if (uci === puzzle.solution.toLowerCase()) {
+        playCorrect();
         setScore((s) => s + 1);
         setFeedback('correct');
         setTimeout(() => {
@@ -83,8 +94,10 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
         return true;
       }
 
+      playMove();
+      playWrong();
       setFeedback('wrong');
-      setTimeout(() => setFeedback('idle'), 600);
+      setTimeout(() => setFeedback('idle'), 500);
       return false;
     },
     [puzzle, loadNextPuzzle]
@@ -105,14 +118,23 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
           <Board
             fen={puzzle.fen}
             orientation={puzzle.orientation}
-            onDrop={handleDrop}
+            onMove={attemptMove}
             locked={loadingPuzzle}
+            feedback={feedback}
           />
         )}
 
         {!puzzle && !error && (
           <div className="board-frame mx-auto flex aspect-square w-full max-w-[480px] items-center justify-center rounded-2xl">
             <p className="font-mono text-sm text-paper/60">Loading puzzle…</p>
+          </div>
+        )}
+
+        {feedback === 'correct' && (
+          <div className="pointer-events-none absolute inset-0 z-[999] flex items-center justify-center">
+            <span className="animate-pop rounded-full bg-gold px-8 py-3 font-display text-3xl font-bold text-ink shadow-2xl">
+              Checkmate! ✓
+            </span>
           </div>
         )}
 
@@ -130,11 +152,10 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
       </div>
 
       <div className="h-7 font-mono text-sm">
-        {feedback === 'correct' && <span className="text-board-dark">Checkmate! ✓</span>}
         {feedback === 'wrong' && <span className="text-ember">Not mate — try again</span>}
-        {feedback === 'idle' && puzzle && (
+        {feedback !== 'wrong' && puzzle && (
           <span className="text-paper/50">
-            Find the mate in 1 — playing as {puzzle.orientation}
+            Tap a piece, then tap where it goes (or drag) — find mate in 1 as {puzzle.orientation}
           </span>
         )}
       </div>

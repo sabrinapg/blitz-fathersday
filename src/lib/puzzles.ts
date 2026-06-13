@@ -41,29 +41,14 @@ export async function fetchMateInOnePuzzle(): Promise<Puzzle> {
   const history = replay.history({ verbose: true });
 
   const board = new Chess();
-  for (let i = 0; i < puzzle.initialPly; i++) {
+  for (let i = 0; i <= puzzle.initialPly; i++) {
     const move = history[i];
+    if (!move) break;
     board.move({ from: move.from, to: move.to, promotion: move.promotion });
   }
 
   const fen = board.fen();
   const solution = puzzle.solution[0];
-
-  // --- TEMP DEBUG: remove once puzzle positions are verified ---
-  const legalMoves = board.moves({ verbose: true }).map(
-    (m) => `${m.from}${m.to}${m.promotion ?? ''}`
-  );
-  console.log('[puzzle debug]', {
-    id: puzzle.id,
-    initialPly: puzzle.initialPly,
-    pgn: game.pgn,
-    fen,
-    turn: board.turn(),
-    solution,
-    solutionIsLegal: legalMoves.includes(solution.toLowerCase()),
-    legalMoves,
-  });
-  // --- END TEMP DEBUG ---
 
   return {
     id: puzzle.id,
