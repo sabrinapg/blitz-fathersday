@@ -16,12 +16,32 @@ interface LichessPuzzleResponse {
   };
 }
 
+const MAX_ATTEMPTS = 3;
+
 /**
  * Fetches a random mate-in-1 puzzle via the lichess-proxy edge function and
  * derives the FEN position the player should be shown, plus the winning
- * move in UCI notation.
+ * move in UCI notation. Retries a couple of times on transient network or
+ * rate-limit errors before giving up.
  */
 export async function fetchMateInOnePuzzle(): Promise<Puzzle> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await fetchOnce();
+    } catch (err) {
+      lastError = err;
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 400));
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Could not load a puzzle.');
+}
+
+async function fetchOnce(): Promise<Puzzle> {
   const { data, error } = await supabase.functions.invoke<LichessPuzzleResponse>(FUNCTION_NAME);
 
   if (error || !data) {

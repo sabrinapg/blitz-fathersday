@@ -11,7 +11,7 @@ export default function Timer({ secondsLeft }: TimerProps) {
 
   return (
     <div
-      className={`inline-flex items-baseline gap-2 rounded-xl border px-6 py-3 font-mono text-5xl tabular-nums tracking-widest transition-colors duration-300 ${
+      className={`inline-flex items-baseline gap-2 rounded-xl border px-4 py-2 font-mono text-3xl tabular-nums tracking-widest transition-colors duration-300 sm:px-6 sm:py-3 sm:text-5xl ${
         isOut
           ? 'border-ember bg-ember/10 text-ember'
           : isLow

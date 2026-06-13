@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import StartScreen from './components/StartScreen';
+import Countdown from './components/Countdown';
 import GameScreen from './components/GameScreen';
 import EndScreen from './components/EndScreen';
 
-type Phase = 'start' | 'playing' | 'end';
+type Phase = 'start' | 'countdown' | 'playing' | 'end';
 
 export default function App() {
   const [phase, setPhase] = useState<Phase>('start');
@@ -11,15 +12,17 @@ export default function App() {
   const [finalScore, setFinalScore] = useState(0);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-10">
+    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-6 sm:py-10">
       {phase === 'start' && (
         <StartScreen
           onStart={(name) => {
             setPlayerName(name);
-            setPhase('playing');
+            setPhase('countdown');
           }}
         />
       )}
+
+      {phase === 'countdown' && <Countdown onComplete={() => setPhase('playing')} />}
 
       {phase === 'playing' && (
         <GameScreen

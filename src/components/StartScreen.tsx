@@ -10,15 +10,15 @@ export default function StartScreen({ onStart }: StartScreenProps) {
   const [name, setName] = useState('Dad');
 
   return (
-    <div className="flex w-full max-w-md flex-col items-center gap-8 text-center">
+    <div className="flex w-full max-w-md flex-col items-center gap-6 text-center sm:gap-8">
       <div className="space-y-2">
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">
           Happy Father's Day
         </p>
-        <h1 className="font-display text-5xl font-semibold leading-tight">
+        <h1 className="font-display text-4xl font-semibold leading-tight sm:text-5xl">
           Blitz <span className="text-gold">Fathersday</span>
         </h1>
-        <p className="text-paper/70">
+        <p className="text-sm text-paper/70 sm:text-base">
           Five minutes on the clock. Nothing but mate-in-1s. How many can you find
           before time runs out?
         </p>

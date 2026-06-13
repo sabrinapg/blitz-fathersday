@@ -56,15 +56,15 @@ export default function EndScreen({ playerName, score, onPlayAgain }: EndScreenP
   }, [playerName, score]);
 
   return (
-    <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
+    <div className="flex w-full max-w-md flex-col items-center gap-5 text-center sm:gap-6">
       {score > 0 && <Confetti />}
-      <div className="space-y-2">
+      <div className="space-y-1.5 sm:space-y-2">
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">Time's up</p>
-        <h1 className="font-display text-3xl font-semibold">
+        <h1 className="font-display text-2xl font-semibold sm:text-3xl">
           {playerName} found
         </h1>
-        <p className="font-display text-7xl font-bold text-gold">{score}</p>
-        <p className="font-display text-3xl font-semibold">
+        <p className="font-display text-6xl font-bold text-gold sm:text-7xl">{score}</p>
+        <p className="font-display text-2xl font-semibold sm:text-3xl">
           checkmate{score === 1 ? '' : 's'} in 5 minutes
         </p>
       </div>

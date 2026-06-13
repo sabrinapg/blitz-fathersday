@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
+import { Pause, Play } from 'lucide-react';
 import Board from './Board';
 import Timer from './Timer';
 import { fetchMateInOnePuzzle } from '../lib/puzzles';
@@ -21,6 +22,7 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
   const [feedback, setFeedback] = useState<Feedback>('idle');
   const [loadingPuzzle, setLoadingPuzzle] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [paused, setPaused] = useState(false);
 
   const scoreRef = useRef(score);
   scoreRef.current = score;
@@ -34,7 +36,11 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
       const next = await fetchMateInOnePuzzle();
       setPuzzle(next);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load a puzzle.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Could not load a puzzle. Check your connection and try again.'
+      );
     } finally {
       setLoadingPuzzle(false);
     }
@@ -47,6 +53,8 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
 
   // Countdown
   useEffect(() => {
+    if (paused) return;
+
     if (secondsLeft <= 0) {
       playGameOver();
       gameOverRef.current(scoreRef.current);
@@ -57,11 +65,11 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
     }
     const id = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
     return () => clearTimeout(id);
-  }, [secondsLeft]);
+  }, [secondsLeft, paused]);
 
   const attemptMove = useCallback(
     (source: string, target: string, promotion?: string) => {
-      if (!puzzle) return false;
+      if (!puzzle || paused) return false;
 
       const board = new Chess(puzzle.fen);
 
@@ -100,17 +108,27 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
       setTimeout(() => setFeedback('idle'), 500);
       return false;
     },
-    [puzzle, loadNextPuzzle]
+    [puzzle, paused, loadNextPuzzle]
   );
 
   return (
-    <div className="flex w-full max-w-xl flex-col items-center gap-6">
+    <div className="flex w-full max-w-xl flex-col items-center gap-4 sm:gap-6">
       <div className="flex w-full items-center justify-between">
         <div className="text-left">
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">Score</p>
-          <p className="font-display text-4xl font-semibold tabular-nums">{score}</p>
+          <p className="font-display text-2xl font-semibold tabular-nums sm:text-4xl">{score}</p>
         </div>
-        <Timer secondsLeft={secondsLeft} />
+
+        <div className="flex items-center gap-3">
+          <Timer secondsLeft={secondsLeft} />
+          <button
+            onClick={() => setPaused((p) => !p)}
+            aria-label={paused ? 'Resume' : 'Pause'}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/30 bg-ink-light text-paper transition hover:border-gold/60 hover:text-gold sm:h-12 sm:w-12"
+          >
+            {paused ? <Play size={18} /> : <Pause size={18} />}
+          </button>
+        </div>
       </div>
 
       <div className="relative w-full">
@@ -119,7 +137,7 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
             fen={puzzle.fen}
             orientation={puzzle.orientation}
             onMove={attemptMove}
-            locked={loadingPuzzle}
+            locked={loadingPuzzle || paused}
             feedback={feedback}
           />
         )}
@@ -132,9 +150,21 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
 
         {feedback === 'correct' && (
           <div className="pointer-events-none absolute inset-0 z-[999] flex items-center justify-center">
-            <span className="animate-pop rounded-full bg-gold px-8 py-3 font-display text-3xl font-bold text-ink shadow-2xl">
+            <span className="animate-pop rounded-full bg-gold px-6 py-2.5 font-display text-2xl font-bold text-ink shadow-2xl sm:px-8 sm:py-3 sm:text-3xl">
               Checkmate! ✓
             </span>
+          </div>
+        )}
+
+        {paused && puzzle && (
+          <div className="absolute inset-0 z-[999] flex flex-col items-center justify-center gap-4 rounded-2xl bg-ink/80 backdrop-blur-sm">
+            <p className="font-display text-4xl font-bold text-paper">Paused</p>
+            <button
+              onClick={() => setPaused(false)}
+              className="flex items-center gap-2 rounded-lg bg-gold px-5 py-2.5 font-display text-lg font-semibold text-ink transition hover:bg-gold/90"
+            >
+              <Play size={18} /> Resume
+            </button>
           </div>
         )}
 
@@ -151,12 +181,10 @@ export default function GameScreen({ onGameOver }: GameScreenProps) {
         )}
       </div>
 
-      <div className="h-7 font-mono text-sm">
+      <div className="h-7 px-2 text-center font-mono text-xs sm:text-sm">
         {feedback === 'wrong' && <span className="text-ember">Not mate — try again</span>}
-        {feedback !== 'wrong' && puzzle && (
-          <span className="text-paper/50">
-            Tap a piece, then tap where it goes (or drag) — find mate in 1 as {puzzle.orientation}
-          </span>
+        {feedback !== 'wrong' && puzzle && !paused && (
+          <span className="text-paper/50">Find mate in 1 as {puzzle.orientation}</span>
         )}
       </div>
     </div>
