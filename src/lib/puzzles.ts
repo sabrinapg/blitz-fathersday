@@ -39,11 +39,12 @@ export async function fetchMateInOnePuzzle(): Promise<Puzzle> {
   const replay = new Chess();
   replay.loadPgn(game.pgn);
   const history = replay.history({ verbose: true });
-
-  const board = new Chess();
-  for (let i = 0; i < puzzle.initialPly; i++) {
-    const move = history[i];
-    board.move({ from: move.from, to: move.to, promotion: move.promotion });
+  
+    const board = new Chess();
+    for (let i = 0; i <= puzzle.initialPly; i++) {
+      const move = history[i];
+      if (!move) break;
+      board.move({ from: move.from, to: move.to, promotion: move.promotion });
   }
 
   return {
