@@ -1,5 +1,3 @@
-const LICHESS_TOKEN = Deno.env.get("LICHESS_TOKEN") ?? "";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -13,7 +11,6 @@ Deno.serve(async (req) => {
   try {
     const res = await fetch("https://lichess.org/api/puzzle/next?angle=mateIn1", {
       headers: {
-        Authorization: `Bearer ${LICHESS_TOKEN}`,
         Accept: "application/json",
       },
     });

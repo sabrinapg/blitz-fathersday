@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-ink text-paper font-sans antialiased;
+  background-image: radial-gradient(circle at 50% 0%, #2c3b33 0%, #1f2a24 60%);
+}
+
+::selection {
+  background: #c9a24b;
+  color: #1f2a24;
+}
+
+/* subtle felt-like texture for the board frame */
+.board-frame {
+  background: linear-gradient(135deg, #3a4d40 0%, #1f2a24 100%);
+  box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(201, 162, 75, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

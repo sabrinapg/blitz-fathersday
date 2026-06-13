@@ -1,0 +1,4 @@
+project_id = "blitz-fathersday"
+
+[functions.lichess-proxy]
+verify_jwt = false
